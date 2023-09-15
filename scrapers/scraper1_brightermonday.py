@@ -16,7 +16,7 @@ def fetch_links(driver, url):
     driver.get(url)
 
     # wait for the page to load
-    WebDriverWait(driver, 10)
+    WebDriverWait(driver, 5)
 
     links = []
     roles = []
