@@ -8,8 +8,8 @@ from selenium.webdriver.common.by import By
 import pickle as pk
 
 
-def url_builder(page):
-    url = f"https://www.myjobmag.co.ke/jobs-by-field/information-technology/{page}"
+def url_builder(root_url, page_number):
+    url = f"{root_url}/{page_number}"
     return url
 
 
@@ -64,31 +64,35 @@ def store_links(links):
     pk.dump(links, file)
     file.close()
 
-    def main():
-        options = Options()
-        options.add_argument("--headless")
-        urls = ["https://www.myjobmag.co.ke/jobs-by-field/information-technology"]
-        links = []
 
-        driver = webdriver.Chrome(options=options)
+def main():
+    options = Options()
+    options.add_argument("--headless")
+    urls = ["https://www.myjobmag.co.ke/jobs-by-field/information-technology", "https://www.myjobmag.co.ke/jobs-by-field/research-data-analysis"]
+    links = []
 
-        # Adding the paginated pages to the root url
-        # done up to page 5 to limit the results to recent information only
-        # starts from page 2 because page 1 is already accounted for in the initial list
-        for x in range(2, 10):
-            urls.append(url_builder(x))
+    driver = webdriver.Chrome(options=options)
 
-        for x in urls:
-            print(f"Fetching job links from {x}")
-            links.append(fetch_links(driver, x))
+    # Adding the paginated pages to the root urls
+    # done up to page 10 to limit the results to recent information only
+    # starts from page 2 because page 1 is already accounted for in the initial list
 
-        # flattening the lists into one dimension
-        links = [link for sublist in links for link in sublist]
-        store_links(links)
+    for root in urls[:2]:
+        for page_number in range(2, 10):
+            urls.append(url_builder(root, page_number))
 
-        print(f"Done. {len(links)} links have been fetched and pickled🫙")
-        # Closes driver agent
-        driver.__exit__()
+    for url in urls:
+        print(f"Fetching job links from {url}")
+        links.append(fetch_links(driver, url))
 
-    if __name__ == "__main__":
-        main()
+    # flattening the lists into one dimension
+    links = [link for sublist in links for link in sublist]
+    store_links(links)
+
+    print(f"Done. {len(links)} links have been fetched and pickled🫙")
+    # Closes driver agent
+    driver.__exit__()
+
+
+if __name__ == "__main__":
+    main()
