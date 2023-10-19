@@ -1,0 +1,7 @@
+# Output folder
+scrapers/Output/
+
+# Pickled Datasets
+model/data/Pickled/
+
+#
