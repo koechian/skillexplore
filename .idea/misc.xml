@@ -4,7 +4,7 @@
     <option name="enabledOnSave" value="true" />
     <option name="executionMode" value="BINARY" />
     <option name="pathToExecutable" value="/usr/bin/black" />
-    <option name="sdkUUID" value="cd75c1be-8dbb-42cc-93e3-a896a6939d89" />
+    <option name="sdkName" value="skillexplore (2)" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="skillexplore (2)" project-jdk-type="Python SDK" />
   <component name="PyPackaging">
