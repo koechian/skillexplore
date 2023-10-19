@@ -2,9 +2,13 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException as TS
 from selenium.webdriver.support import expected_conditions as conditions
 from selenium.webdriver.common.by import By
 import pickle as pk
+import requests
+import time
+import os
 
 
 def url_builder(page):
@@ -15,11 +19,7 @@ def url_builder(page):
 def fetch_links(driver, url):
     driver.get(url)
 
-    # wait for the page to load
-    WebDriverWait(driver, 5)
-
     links = []
-    roles = []
     x = 3  # Starting value of x
 
     while x < 24:
@@ -29,6 +29,7 @@ def fetch_links(driver, url):
             WebDriverWait(driver, 1).until(
                 conditions.presence_of_element_located((By.XPATH, xpath))
             )
+
             element = driver.find_element_by_xpath(xpath)
 
             try:
@@ -44,6 +45,9 @@ def fetch_links(driver, url):
         except NoSuchElementException:
             # When there are no more divs with the current x value, exit the loop
             break
+        except TS:
+            # if the page timesout just exit the loop
+            break
 
     # Removing any duplicates and misleading links
     links = [link for link in links if "listings" in link]
@@ -53,7 +57,14 @@ def fetch_links(driver, url):
 
 
 def store_links(links):
-    file = open("links/brightermonday_links", "wb")
+    filename = "links/brightermonday_links"
+    try:
+        file = open(filename, "wb")
+    except FileNotFoundError:
+        print("Links folder not found, creating one.")
+        os.mkdir("links/")
+        file = open(filename, "wb")
+
     pk.dump(links, file)
     file.close()
 
@@ -72,17 +83,32 @@ def main():
     for x in range(2, 11):
         urls.append(url_builder(x))
 
+    tac = time.perf_counter()
+
     for url in urls:
         print(f"Fetching job links from {url}")
-        links.append(fetch_links(driver, url))
+
+        # Check if page exists/returns a 404
+        response = requests.get(url)
+        if response.status_code == 404:
+            print("Link does not exist. Stopping...")
+            break
+        else:
+            links.append(fetch_links(driver, url))
+
+    tic = time.perf_counter()
 
     # flattening the lists into one dimension
     links = [link for sublist in links for link in sublist]
     store_links(links)
 
-    print(f"Done. {len(links)} links have been fetched and pickled🫙")
+    print(
+        f"Done. {len(links)} links from BrighterMonday.co.ke have been fetched and pickled🫙"
+    )
+    print(f"Time Taken:. {(tic - tac):.3f} seconds")
+
     # Closes driver agent
-    driver.__exit__()
+    driver.quit()
 
 
 if __name__ == "__main__":

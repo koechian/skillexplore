@@ -1,3 +1,6 @@
+import os
+import time
+
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
@@ -6,6 +9,7 @@ from selenium.common.exceptions import TimeoutException as TS
 from selenium.webdriver.support import expected_conditions as conditions
 from selenium.webdriver.common.by import By
 import pickle as pk
+import requests
 
 
 def url_builder(root_url, page_number):
@@ -15,9 +19,6 @@ def url_builder(root_url, page_number):
 
 def fetch_links(driver, url):
     driver.get(url)
-
-    # wait for the page to load
-    WebDriverWait(driver, 10)
 
     links = []
     x = 1  # Starting value of x
@@ -52,15 +53,18 @@ def fetch_links(driver, url):
             # When there are no more divs with the current x value, exit the loop
             break
 
-    # Removing any duplicates and misleading links
-    # links = [link for link in links if "listings" in link]
-    # links = list(set(links))
-
     return links
 
 
 def store_links(links):
-    file = open('links/myjobmag_links', 'wb')
+    filename = "links/myjobmag_links"
+    try:
+        file = open(filename, "wb")
+    except FileNotFoundError:
+        print("Links folder not found, creating one.")
+        os.mkdir("links/")
+        file = open(filename, "wb")
+
     pk.dump(links, file)
     file.close()
 
@@ -68,7 +72,10 @@ def store_links(links):
 def main():
     options = Options()
     options.add_argument("--headless")
-    urls = ["https://www.myjobmag.co.ke/jobs-by-field/information-technology", "https://www.myjobmag.co.ke/jobs-by-field/research-data-analysis"]
+    urls = [
+        "https://www.myjobmag.co.ke/jobs-by-field/information-technology",
+        "https://www.myjobmag.co.ke/jobs-by-field/research-data-analysis",
+    ]
     links = []
 
     driver = webdriver.Chrome(options=options)
@@ -77,21 +84,36 @@ def main():
     # done up to page 10 to limit the results to recent information only
     # starts from page 2 because page 1 is already accounted for in the initial list
 
+    tac = time.perf_counter()
+
     for root in urls[:2]:
         for page_number in range(2, 10):
             urls.append(url_builder(root, page_number))
 
     for url in urls:
         print(f"Fetching job links from {url}")
-        links.append(fetch_links(driver, url))
+
+        # Check if page exists/returns a 404
+        response = requests.get(url)
+        if response.status_code == 404:
+            print("Link does not exist. Stopping...")
+            break
+        else:
+            links.append(fetch_links(driver, url))
+
+    tic = time.perf_counter()
 
     # flattening the lists into one dimension
     links = [link for sublist in links for link in sublist]
     store_links(links)
 
-    print(f"Done. {len(links)} links have been fetched and pickled🫙")
+    print(
+        f"Done. {len(links)} links from MyJobMag.co.ke have been fetched and pickled🫙"
+    )
+    print(f"Time Taken:. {(tic - tac):.3f} seconds")
+
     # Closes driver agent
-    driver.__exit__()
+    driver.quit()
 
 
 if __name__ == "__main__":
