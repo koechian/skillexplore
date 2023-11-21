@@ -11,17 +11,12 @@ from selenium.webdriver.support import expected_conditions as conditions
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
-from scrapers.Scripts.util import Utilities
-
 
 class Scraper:
     def __init__(self, thread, links, global_bar=None):
         self.thread = thread
         self.links = links
         self.global_bar = global_bar
-
-        # declare utility class
-        self.utils = Utilities()
 
         # making output directory if it doesn't exist
         directory = "Output"
@@ -142,7 +137,6 @@ class Scraper:
         return jobs, skipped
 
     def store(self, jobs):
-
         file = json.JSONEncoder().encode(jobs)
         f = open(self.path, "w")
 
@@ -152,7 +146,6 @@ class Scraper:
         print(f"{len(jobs)} listing(s) have been serialized and stored.")
 
     def run(self):
-
         jobs, skipped = self.scraper(self.links)
 
         if skipped > 0:

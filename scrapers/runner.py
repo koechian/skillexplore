@@ -1,11 +1,12 @@
 import os
 import pickle as pk
 from tqdm import tqdm
-from scrapers.Scripts.scraper2_urlscraper import Scraper
+from scripts.scraper2_urlscraper import Scraper
 import time
-from multiprocessing import cpu_count, Process
+import scripts.scraper1_brightermonday as bm
+import scripts.scraper1_myjobmag as mjm
 
-from scrapers.Scripts.util import Utilities
+from scripts.util import Utilities
 
 
 def fetch_links():
@@ -19,6 +20,12 @@ def fetch_links():
 
     print(f"{len(urls)} urls have been unpacked.")
     return urls
+
+
+def preScrapers():
+    # Run the pre-scrapers
+    bm.main()
+    mjm.main()
 
 
 def split_links(links, cpus):
@@ -37,10 +44,12 @@ def linker(urls, index, global_bar):
 
 def main():
     if Utilities.internet_check():
-        # Generate a number of processes equal to the number of CPU's in the system minus 2.
-        # cpus = cpu_count() - 2
+        # Generate a number of processes equal to the number of CPU's in the system minus 1.
+        # cpus = cpu_count() - 1
+        # preScrapers()
+
         raw_links = fetch_links()
-        #
+
         # links = split_links(raw_links, cpus)
         # instance = []
 
