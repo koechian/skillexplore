@@ -1,8 +1,13 @@
-# Output folder
-scrapers/Output/
+# Output folder for scrapers
+Outputs/
+
 
 # Pickled Datasets
 model/data/Pickled/
 
 # models
 model/models/outputs/*
+
+# pycache
+
+scrapers/scripts/__pycache__

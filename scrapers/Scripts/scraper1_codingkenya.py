@@ -93,12 +93,12 @@ def check_pagination(driver):
 
 
 def store_links(links):
-    filename = "links/codingkenya.pk"
+    filename = "Outputs/codingkenya.pk"
     try:
         file = open(filename, "wb")
     except FileNotFoundError:
         print("Links folder not found, creating one.")
-        os.mkdir("links/")
+        os.mkdir("Outputs/")
         file = open(filename, "wb")
 
     pk.dump(links, file)

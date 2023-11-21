@@ -57,12 +57,12 @@ def fetch_links(driver, url):
 
 
 def store_links(links):
-    filename = "links/myjobmag_links"
+    filename = "Outputs/myjobmag_links.pk"
     try:
         file = open(filename, "wb")
     except FileNotFoundError:
         print("Links folder not found, creating one.")
-        os.mkdir("links/")
+        os.mkdir("Outputs")
         file = open(filename, "wb")
 
     pk.dump(links, file)

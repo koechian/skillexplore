@@ -10,15 +10,16 @@ from scripts.util import Utilities
 
 
 def fetch_links():
-    files = os.listdir("links/")
+    files = os.listdir("Outputs/")
     urls = []
     for file in files:
-        _ = open(("links/" + file), "rb")
+        print(f"Fetched {file}")
+        _ = open(("Outputs/" + file), "rb")
         urls.append(pk.load(_))
 
     urls = [url for sublist in urls for url in sublist]
 
-    print(f"{len(urls)} urls have been unpacked.")
+    print(f"{len(urls)} urls have been unpacked from {len(files)} found files")
     return urls
 
 
