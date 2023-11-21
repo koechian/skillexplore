@@ -4,4 +4,5 @@ scrapers/Output/
 # Pickled Datasets
 model/data/Pickled/
 
-#
+# models
+model/models/outputs/*
