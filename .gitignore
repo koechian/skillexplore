@@ -9,5 +9,5 @@ model/data/Pickled/
 model/models/outputs/*
 
 # pycache
-
-scrapers/scripts/__pycache__
+scrapers/scripts/__pycache__/
+*.pyc

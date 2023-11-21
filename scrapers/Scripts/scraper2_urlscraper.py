@@ -10,6 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as conditions
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+import re
 
 
 class Scraper:
@@ -19,7 +20,7 @@ class Scraper:
         self.global_bar = global_bar
 
         # making output directory if it doesn't exist
-        directory = "Output"
+        directory = "Outputs/jobs"
 
         # TODO clearing existing files.
 
@@ -64,17 +65,46 @@ class Scraper:
         jobs = {}
         skipped = 0
 
+        # using regex to determine the site that is about to be scraped and to adjust the xpath to be used accordingly
+        brightermonday = re.compile(r"brightermonday", re.IGNORECASE)
+        codingkenya = re.compile(r"codingkenya", re.IGNORECASE)
+        myjobmag = re.compile(r"myjobmag", re.IGNORECASE)
+
         for url in urls:
+            print(f"Working on {url}")
             try:
-                xpath = {
-                    "company": '//h2[@class="pb-1 text-sm font-normal"]',
-                    "title": '//*[@id="tab1"]/div/article/div[2]/div[2]/h1',
-                    "description": "//*[@id='tab1']/div/article/div[5]/div",
-                    "location": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[1]/*[1]',
-                    "nature": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[1]/*[2]',
-                    "salary": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[2]/span[1]/span',
-                    "posted": '//*[@id="tab1"]/div/article/div[3]/div[2]',
-                }
+                if brightermonday.search(url):
+                    print("using brightermonday xpath")
+                    xpath = {
+                        "company": '//h2[@class="pb-1 text-sm font-normal"]',
+                        "title": '//*[@id="tab1"]/div/article/div[2]/div[2]/h1',
+                        "description": "//*[@id='tab1']/div/article/div[5]/div",
+                        "location": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[1]/*[1]',
+                        "nature": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[1]/*[2]',
+                        "salary": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[2]/span[1]/span',
+                        "posted": '//*[@id="tab1"]/div/article/div[3]/div[2]',
+                    }
+                elif codingkenya.search(url):
+                    print("using codingkenya xpath")
+                    xpath = {
+                        "company": '//h2[@class="pb-1 text-sm font-normal"]',
+                        "title": '//*[@id="tab1"]/div/article/div[2]/div[2]/h1',
+                        "description": "//*[@id='tab1']/div/article/div[5]/div",
+                        "location": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[1]/*[1]',
+                        "nature": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[1]/*[2]',
+                        "salary": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[2]/span[1]/span',
+                        "posted": '//*[@id="tab1"]/div/article/div[3]/div[2]',
+                    }
+                elif myjobmag.search(url):
+                    print("using myjobmag xpath")
+                    xpath = {
+                        "title": "/html/body/section/div/div/div[1]/ul/li[3]/h2[1]/span",
+                        "description": "//*[@id='printable']/div[2]",
+                        "location": '//*[@id="printable"]/ul/li[4]/span[2]/a',
+                        "nature": '//*[@id="printable"]/ul/li[1]/span[2]/a',
+                        "salary": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[2]/span[1]/span',
+                        "posted": '//*[@id="posted-date"]',
+                    }
 
                 self.driver.get(url)
                 try:
@@ -85,11 +115,10 @@ class Scraper:
                     )
 
                     #  get job details and clean innerHTML from posted and description
-                    company = self.driver.find_element_by_xpath(xpath["company"])
                     title = self.driver.find_element_by_xpath(xpath["title"])
                     location = self.driver.find_element_by_xpath(xpath["location"])
                     nature = self.driver.find_element_by_xpath(xpath["nature"])
-                    salary = self.driver.find_element_by_xpath(xpath["salary"])
+                    # salary = self.driver.find_element_by_xpath(xpath["salary"])
 
                     # cleaning the output
                     posted = self.parser(
@@ -108,24 +137,25 @@ class Scraper:
                     jobs.update(
                         {
                             url: {
-                                "company": company.text,
                                 "title": title.text,
                                 "location": location.text,
                                 "nature": nature.text,
-                                "salary": (
-                                    salary.text
-                                    if len(salary.text) > 6
-                                    else "Unspecified"
-                                ),
+                                # "salary": (
+                                #     salary.text
+                                #     if len(salary.text) > 6
+                                #     else "Unspecified"
+                                # ),
                                 "description": description,
                                 "posted": posted,
                             }
                         }
                     )
+                    print(title)
                     # self.local_progress.update(1)
                     self.global_bar.update(1)
 
                 except TimeoutException:
+                    print("Skipped")
                     skipped += 1
 
             except NoSuchElementException:
