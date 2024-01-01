@@ -71,10 +71,8 @@ class Scraper:
         myjobmag = re.compile(r"myjobmag", re.IGNORECASE)
 
         for url in urls:
-            print(f"Working on {url}")
             try:
                 if brightermonday.search(url):
-                    print("using brightermonday xpath")
                     xpath = {
                         "company": '//h2[@class="pb-1 text-sm font-normal"]',
                         "title": '//*[@id="tab1"]/div/article/div[2]/div[2]/h1',
@@ -85,18 +83,13 @@ class Scraper:
                         "posted": '//*[@id="tab1"]/div/article/div[3]/div[2]',
                     }
                 elif codingkenya.search(url):
-                    print("using codingkenya xpath")
                     xpath = {
-                        "company": '//h2[@class="pb-1 text-sm font-normal"]',
-                        "title": '//*[@id="tab1"]/div/article/div[2]/div[2]/h1',
-                        "description": "//*[@id='tab1']/div/article/div[5]/div",
-                        "location": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[1]/*[1]',
-                        "nature": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[1]/*[2]',
-                        "salary": '//*[@id="tab1"]/div/article/div[2]/div[2]/div[2]/span[1]/span',
-                        "posted": '//*[@id="tab1"]/div/article/div[3]/div[2]',
+                        "title": "/html/body/div/div/header[2]/div/div/div[1]/h1",
+                        "description": "/html/body/div/div/div/div/div/div[2]/main/div/div/div[1]/div[2]/article/div/div[1]",
+                        "location": "/html/body/div/div/header[2]/div/div/div[1]/div/ul/li[2]/a",
+                        "nature": "/html/body/div/div/header[2]/div/div/div[1]/div/ul/li[1]",
                     }
                 elif myjobmag.search(url):
-                    print("using myjobmag xpath")
                     xpath = {
                         "title": "/html/body/section/div/div/div[1]/ul/li[3]/h2[1]/span",
                         "description": "//*[@id='printable']/div[2]",
@@ -119,13 +112,6 @@ class Scraper:
                     location = self.driver.find_element_by_xpath(xpath["location"])
                     nature = self.driver.find_element_by_xpath(xpath["nature"])
                     # salary = self.driver.find_element_by_xpath(xpath["salary"])
-
-                    # cleaning the output
-                    posted = self.parser(
-                        dirty=self.driver.find_element_by_xpath(
-                            xpath["posted"]
-                        ).get_attribute("innerHTML")
-                    )
                     description = self.parser(
                         dirty=self.driver.find_element_by_xpath(
                             xpath["description"]
@@ -146,16 +132,13 @@ class Scraper:
                                 #     else "Unspecified"
                                 # ),
                                 "description": description,
-                                "posted": posted,
                             }
                         }
                     )
-                    print(title)
                     # self.local_progress.update(1)
                     self.global_bar.update(1)
 
                 except TimeoutException:
-                    print("Skipped")
                     skipped += 1
 
             except NoSuchElementException:

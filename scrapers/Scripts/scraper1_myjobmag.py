@@ -57,7 +57,7 @@ def fetch_links(driver, url):
 
 
 def store_links(links):
-    filename = "Outputs/myjobmag_links.pk"
+    filename = "Outputs/links/myjobmag.pk"
     try:
         file = open(filename, "wb")
     except FileNotFoundError:

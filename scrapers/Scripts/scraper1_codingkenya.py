@@ -12,62 +12,63 @@ import pickle as pk
 import requests
 
 
-def url_builder(root_url, page_number):
-    url = f"{root_url}/page/{page_number}"
-    return url
+# def url_builder(root_url, page_number):
+#     url = f"{root_url}/page/{page_number}"
+#     return url
 
 
 def fetch_links(driver, url):
     links = []
+    print(f"Fetching job links from {url}")
+    driver.get(url)
 
-    def scraper_logic(url):
-        print(f"Fetching job links from {url}")
-        driver.get(url)
-        x = 1  # Starting value of x
-        skip_counter = 0
+    # Clicking on the view all element to allow all links to be loaded in the webpage
+    driver.find_element(
+        By.XPATH,
+        "/html/body/div/div/div/div/div/div[2]/main/div/div[2]/form[2]/select/option[8]",
+    ).click()
+    x = 1  # Starting value of x
+    skip_counter = 0
 
-        while x < 24:
+    while x < 1001:
+        try:
+            # Construct the XPath for the div with the current x value
+            xpath = f"/html/body/div/div/div/div/div/div[2]/main/ul/li[{x}]/a"
+
+            # try to get the element specified by the xpath, if it does not exist skip it
             try:
-                # Construct the XPath for the div with the current x value
-                xpath = f" //*[@id='main']/ul/li[{x}]/a"
+                WebDriverWait(driver, 1).until(
+                    conditions.presence_of_element_located((By.XPATH, xpath))
+                )
+            except TS:
+                x += 1
+                skip_counter += 1
+                continue
 
-                # /html/body/div/div/div/div/div/div[2]/main/ul/li[2]/a
-
-                # try to get the element specified by the xpath, if it does not exist skip it
-                try:
-                    WebDriverWait(driver, 1).until(
-                        conditions.presence_of_element_located((By.XPATH, xpath))
-                    )
-                except TS:
-                    x += 1
-                    skip_counter += 1
-                    continue
-
-                element = driver.find_element_by_xpath(xpath)
-                try:
-                    # Find and store the first link within the div, if it exists
-                    links.append(element.get_attribute("href"))
-
-                except NoSuchElementException:
-                    pass
-
-                x += 1  # Increment x for the next iteration
+            element = driver.find_element_by_xpath(xpath)
+            try:
+                # Find and store the first link within the div, if it exists
+                links.append(element.get_attribute("href"))
 
             except NoSuchElementException:
-                # When there are no more divs with the current x value, exit the loop
-                break
+                pass
 
-    driver.get(url)
-    pagination = check_pagination(driver)
+            x += 1  # Increment x for the next iteration
 
-    if pagination > 0:
-        print(f"Found {pagination} paginated pages, adding them to queue")
-        sub_urls = [url]
-        for page_number in range(2, pagination + 1):
-            sub_urls.append(url_builder(url, page_number))
+        except NoSuchElementException:
+            # When there are no more divs with the current x value, exit the loop
+            break
 
-        for url in sub_urls:
-            scraper_logic(url)
+    # pagination = check_pagination(driver)
+
+    # if pagination > 0:
+    #     print(f"Found {pagination} paginated pages, adding them to queue")
+    #     sub_urls = [url]
+    #     for page_number in range(2, pagination + 1):
+    #         sub_urls.append(url_builder(url, page_number))
+
+    #     for url in sub_urls:
+    #         scraper_logic(url)
 
     return links
 
@@ -93,12 +94,12 @@ def check_pagination(driver):
 
 
 def store_links(links):
-    filename = "Outputs/codingkenya.pk"
+    filename = "Outputs/links/codingkenya.pk"
     try:
         file = open(filename, "wb")
     except FileNotFoundError:
         print("Links folder not found, creating one.")
-        os.mkdir("Outputs/")
+        os.mkdir("Outputs/links/")
         file = open(filename, "wb")
 
     pk.dump(links, file)
@@ -112,44 +113,44 @@ def store_links(links):
 def main():
     options = Options()
     options.add_argument("--headless")
-    urls = ["https://codingkenya.com/job-category/"]
+    url = "https://codingkenya.com/jobs"
     links = []
 
-    categories = [
-        "artificial-intelligence",
-        "automation",
-        "backend-engineer",
-        "big-data",
-        "blockchain-developer",
-        "cloud-solutions-architect",
-        "data-engineer",
-        "data-officer",
-        "database-administrator",
-        "coding",
-        "cybersecurity",
-        "devops-engineer",
-        "digital-complience-and-audit",
-        "digital-learning-specialist",
-        "front-end-developer",
-        "front-end-engineer",
-        "fullstack-engineer",
-        "full-stack-web-developer",
-        "graphic-designer",
-        "ict-officer",
-        "helpdesk-support-analyst",
-        "internet-of-things",
-        "internship",
-        "it-administrator",
-        "it-consulting",
-        "machine-learning",
-        "software-developer",
-        "software-engineer",
-        "senior-software-engineer",
-        "systems-administrator",
-        "systems-developer",
-        "ui-ux-designer",
-        "web-developer",
-    ]
+    #           categories = [
+    #         "artificial-intelligence",
+    #         "automation",
+    #         "backend-engineer",
+    #         "big-data",
+    #         "blockchain-developer",
+    #         "cloud-solutions-architect",
+    #         "data-engineer",
+    #         "data-officer",
+    #         "database-administrator",
+    #         "coding",
+    #         "cybersecurity",
+    #         "devops-engineer",
+    #         "digital-complience-and-audit",
+    #         "digital-learning-specialist",
+    #         "front-end-developer",
+    #         "front-end-engineer",
+    #         "fullstack-engineer",
+    #         "full-stack-web-developer",
+    #         "graphic-designer",
+    #         "ict-officer",
+    #         "helpdesk-support-analyst",
+    #         "internet-of-things",
+    #         "internship",
+    #         "it-administrator",
+    #         "it-consulting",
+    #         "machine-learning",
+    #         "software-developer",
+    #         "software-engineer",
+    #         "senior-software-engineer",
+    #         "systems-administrator",
+    #         "systems-developer",
+    #         "ui-ux-designer",
+    #         "web-developer",
+    #     ]
 
     driver = webdriver.Chrome(options=options)
 
@@ -157,18 +158,13 @@ def main():
 
     tac = time.perf_counter()
 
-    for category in categories:
-        urls.append(urls[0] + category)
-
-    for url in urls[1:]:
-        # Check if page exists/returns a 404
-        response = requests.get(url)
-        if response.status_code == 404:
-            print("Link does not exist. Stopping...")
-            break
-        else:
-            links.append(fetch_links(driver, url))
-            # print(fetch_links(driver, url))
+    # Check if page exists/returns a 404
+    response = requests.get(url)
+    if response.status_code == 404:
+        print("Link does not exist. Stopping...")
+    else:
+        links.append(fetch_links(driver, url))
+        # print(fetch_links(driver, url))
 
     tic = time.perf_counter()
 
