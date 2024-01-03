@@ -1,8 +1,12 @@
 import os
 import pickle as pk
+import random
 from tqdm import tqdm
-from scripts.scraper2_urlscraper import Scraper
 import time
+
+# from subprocess import Popen, CREATE_NEW_CONSOLE
+
+from scripts.scraper2_urlscraper import Scraper
 import scripts.scraper1_brightermonday as bm
 import scripts.scraper1_myjobmag as mjm
 import scripts.scraper1_codingkenya as cdk
@@ -11,14 +15,18 @@ from scripts.util import Utilities
 
 
 def fetch_links():
-    files = os.listdir("Outputs/links")
+    files = os.listdir("scrapers/Outputs/links/")
     urls = []
     for file in files:
         print(f"Fetched {file}")
-        _ = open(("Outputs/links/" + file), "rb")
+        _ = open(("scrapers/Outputs/links/" + file), "rb")
         urls.append(pk.load(_))
 
     urls = [url for sublist in urls for url in sublist]
+
+    # randomly shuffling the Urls to prevent hitting rate limits by pinging one website constantly
+
+    # urls = random.shuffle(urls)
 
     print(f"{len(urls)} urls have been unpacked from {len(files)} found files")
     return urls
@@ -48,10 +56,10 @@ def linker(urls, index, global_bar):
 def main():
     if Utilities.internet_check():
         # Generate a number of processes equal to the number of CPU's in the system minus 1.
-        # cpus = cpu_count() - 1
+        cpus = 5
 
         # run the prescrapers to get URLS
-        preScrapers()
+        # preScrapers()
 
         raw_links = fetch_links()
 
@@ -62,11 +70,8 @@ def main():
 
         tac = time.perf_counter()
 
-        # for index, x in enumerate(raw_links):qœ
-        #     inst = Process(target=linker, args=(x, index, global_bar))
-        #     instance.append(inst)
-        #     inst.start()
-        #
+        # for index, x in enumerate(links):
+
         # for i in instance:
         #     i.join()
 
@@ -83,6 +88,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# Without multiprocessing time taken for 444 links with 10 mbps net was 73 mins
-# with 106 jobs completed and 338 skipped due to timeout

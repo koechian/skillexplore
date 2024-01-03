@@ -1,4 +1,5 @@
 import os
+import random
 
 from bs4 import BeautifulSoup
 import json
@@ -15,20 +16,20 @@ import re
 
 class Scraper:
     def __init__(self, thread, links, global_bar=None):
+        self.links = self.batcher(links)
         self.thread = thread
-        self.links = links
         self.global_bar = global_bar
 
         # making output directory if it doesn't exist
-        directory = "Outputs/jobs"
+        directory = "scrapers/Outputs/jobs"
 
         # TODO clearing existing files.
 
         os.makedirs(directory, exist_ok=True)
 
-        filename = f"output{self.thread}.json"
+        # filename = f"output{self.thread}.json"
 
-        self.path = os.path.join(directory, filename)
+        self.path = os.path.join(directory)
 
         # Selenium instance setup
         options = Options()
@@ -58,7 +59,6 @@ class Scraper:
 
         # removing tab spaces and large spaces
         cleaned = " ".join(text.split())
-
         return cleaned
 
     def scraper(self, urls):
@@ -71,8 +71,10 @@ class Scraper:
         myjobmag = re.compile(r"myjobmag", re.IGNORECASE)
 
         for url in urls:
+            print(f"Working on {url}")
             try:
                 if brightermonday.search(url):
+                    print("Brighter MOnday Link Identified")
                     xpath = {
                         "company": '//h2[@class="pb-1 text-sm font-normal"]',
                         "title": '//*[@id="tab1"]/div/article/div[2]/div[2]/h1',
@@ -83,13 +85,15 @@ class Scraper:
                         "posted": '//*[@id="tab1"]/div/article/div[3]/div[2]',
                     }
                 elif codingkenya.search(url):
+                    print("Coding Kenya Link Identified")
                     xpath = {
                         "title": "/html/body/div/div/header[2]/div/div/div[1]/h1",
-                        "description": "/html/body/div/div/div/div/div/div[2]/main/div/div/div[1]/div[2]/article/div/div[1]",
+                        "description": "/html/body/div/div/div/div/div/div[2]/main/div/div/div[1]/div[2]",
                         "location": "/html/body/div/div/header[2]/div/div/div[1]/div/ul/li[2]/a",
                         "nature": "/html/body/div/div/header[2]/div/div/div[1]/div/ul/li[1]",
                     }
                 elif myjobmag.search(url):
+                    print("MyJobMag Link Identified")
                     xpath = {
                         "title": "/html/body/section/div/div/div[1]/ul/li[3]/h2[1]/span",
                         "description": "//*[@id='printable']/div[2]",
@@ -108,13 +112,13 @@ class Scraper:
                     )
 
                     #  get job details and clean innerHTML from posted and description
-                    title = self.driver.find_element_by_xpath(xpath["title"])
-                    location = self.driver.find_element_by_xpath(xpath["location"])
-                    nature = self.driver.find_element_by_xpath(xpath["nature"])
+                    title = self.driver.find_element(By.XPATH, xpath["title"])
+                    location = self.driver.find_element(By.XPATH, xpath["location"])
+                    nature = self.driver.find_element(By.XPATH, xpath["nature"])
                     # salary = self.driver.find_element_by_xpath(xpath["salary"])
                     description = self.parser(
-                        dirty=self.driver.find_element_by_xpath(
-                            xpath["description"]
+                        dirty=self.driver.find_element(
+                            By.XPATH, xpath["description"]
                         ).get_attribute("innerHTML")
                     )
 
@@ -149,9 +153,25 @@ class Scraper:
 
         return jobs, skipped
 
-    def store(self, jobs):
+    def batcher(self, links):
+        # takes in all the links and splits them into batches of 100
+        size = 100
+
+        # shuffle the links randomly to avoid constantly pinging the same site multiple times and getting rate limited
+        random.shuffle(links)
+
+        final = [
+            links[i * size : (i + 1) * size]
+            for i in range((len(links) + size - 1) // size)
+        ]
+
+        print(f"{len(final)} Batches have been created")
+
+        return final
+
+    def store(self, jobs, path):
         file = json.JSONEncoder().encode(jobs)
-        f = open(self.path, "w")
+        f = open(f"{self.path}/batch{path}.json", "w")
 
         f.write(file)
         f.close()
@@ -159,12 +179,14 @@ class Scraper:
         print(f"{len(jobs)} listing(s) have been serialized and stored.")
 
     def run(self):
-        jobs, skipped = self.scraper(self.links)
-
-        if skipped > 0:
-            print(f"Completed {len(jobs)} jobs, {skipped} skipped due to timeout)")
-
-        self.store(jobs)
+        self.links
+        for index, batch in enumerate(self.links):
+            jobs, skipped = self.scraper(batch)
+            self.store(jobs, index + 1)
+            if skipped > 0:
+                print(
+                    f"Completed {len(jobs)} jobs, {skipped} skipped due to timeout, this is batch {index} of {len(self.links)})"
+                )
 
         if self.global_bar is not None:
             self.global_bar.update(1)
