@@ -30,11 +30,11 @@ def fetch_links(driver, url):
                 conditions.presence_of_element_located((By.XPATH, xpath))
             )
 
-            element = driver.find_element_by_xpath(xpath)
+            element = driver.find_element(By.XPATH, xpath)
 
             try:
                 # Find and store the first link within the div, if it exists
-                link = element.find_element_by_tag_name("a")
+                link = element.find_element(By.TAG_NAME, "a")
                 links.append(link.get_attribute("href"))
 
             except NoSuchElementException:
@@ -59,14 +59,16 @@ def fetch_links(driver, url):
 def store_links(links):
     filename = "Outputs/links/brightermonday.pk"
     try:
-        file = open(filename, "wb")
+        # Open the file in 'wb' mode, which overwrites the file if it exists or creates a new one
+        with open(filename, "wb") as file:
+            pk.dump(links, file)
+        print(f"Links stored in {filename}")
     except FileNotFoundError:
-        print("Links folder not found, creating one.")
-        os.mkdir("Outputs")
-        file = open(filename, "wb")
-
-    pk.dump(links, file)
-    file.close()
+        print("Error: Links folder not found.")
+        os.makedirs("Outputs/links")  # Create the 'Outputs/links' directory
+        with open(filename, "wb") as file:
+            pk.dump(links, file)
+        print(f"Links stored in {filename}")
 
 
 def main():
@@ -107,7 +109,7 @@ def main():
     )
     print(f"Time Taken:. {(tic - tac):.3f} seconds")
 
-    # Closes driver agent
+    # Close WebDriver
     driver.quit()
 
 

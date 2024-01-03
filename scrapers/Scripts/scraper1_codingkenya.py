@@ -45,7 +45,7 @@ def fetch_links(driver, url):
                 skip_counter += 1
                 continue
 
-            element = driver.find_element_by_xpath(xpath)
+            element = driver.find_element(By.XPATH, xpath)
             try:
                 # Find and store the first link within the div, if it exists
                 links.append(element.get_attribute("href"))
@@ -84,7 +84,7 @@ def check_pagination(driver):
         )
         pagination = driver.find_element(By.XPATH, xpath)
 
-        pages = pagination.find_elements_by_tag_name("li")
+        pages = pagination.find_elements(By.TAG_NAME, "li")
 
         last_page = int(pages[-2].text)
 
@@ -96,18 +96,20 @@ def check_pagination(driver):
 def store_links(links):
     filename = "Outputs/links/codingkenya.pk"
     try:
-        file = open(filename, "wb")
+        # Open the file in 'wb' mode, which overwrites the file if it exists or creates a new one
+        with open(filename, "wb") as file:
+            pk.dump(links, file)
+        print(
+            f"Done. {len(links)} links from CodingJobs Kenya have been fetched and pickled🫙"
+        )
     except FileNotFoundError:
-        print("Links folder not found, creating one.")
-        os.mkdir("Outputs/links/")
-        file = open(filename, "wb")
-
-    pk.dump(links, file)
-    file.close()
-
-    print(
-        f"Done. {len(links)} links from CodingJobs Kenya have been fetched and pickled🫙"
-    )
+        print("Error: Links folder not found.")
+        os.makedirs("Outputs/links/")  # Create the 'Outputs/links/' directory
+        with open(filename, "wb") as file:
+            pk.dump(links, file)
+        print(
+            f"Done. {len(links)} links from CodingJobs Kenya have been fetched and pickled🫙"
+        )
 
 
 def main():
@@ -174,7 +176,7 @@ def main():
 
     print(f"Time Taken:. {(tic - tac):.3f} seconds")
 
-    # Closes driver agent
+    # Close WebDriver
     driver.quit()
 
 

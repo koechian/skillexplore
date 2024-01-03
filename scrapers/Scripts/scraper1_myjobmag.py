@@ -31,7 +31,7 @@ def fetch_links(driver, url):
 
             # try to get the element specified by the xpath, if it does not exist skip it
             try:
-                WebDriverWait(driver, 1).until(
+                WebDriverWait(driver, 10).until(
                     conditions.presence_of_element_located((By.XPATH, xpath))
                 )
             except TS:
@@ -39,7 +39,7 @@ def fetch_links(driver, url):
                 skip_counter += 1
                 continue
 
-            element = driver.find_element_by_xpath(xpath)
+            element = driver.find_element(By.XPATH, xpath)
             try:
                 # Find and store the first link within the div, if it exists
                 links.append(element.get_attribute("href"))
@@ -59,14 +59,20 @@ def fetch_links(driver, url):
 def store_links(links):
     filename = "Outputs/links/myjobmag.pk"
     try:
-        file = open(filename, "wb")
+        # Open the file in 'wb' mode, which overwrites the file if it exists or creates a new one
+        with open(filename, "wb") as file:
+            pk.dump(links, file)
+        print(
+            f"Done. {len(links)} links from MyJobMag.co.ke have been fetched and pickled🫙"
+        )
     except FileNotFoundError:
-        print("Links folder not found, creating one.")
-        os.mkdir("Outputs")
-        file = open(filename, "wb")
-
-    pk.dump(links, file)
-    file.close()
+        print("Error: Links folder not found.")
+        os.makedirs("Outputs/links/")  # Create the 'Outputs/links/' directory
+        with open(filename, "wb") as file:
+            pk.dump(links, file)
+        print(
+            f"Done. {len(links)} links from MyJobMag.co.ke have been fetched and pickled🫙"
+        )
 
 
 def main():
@@ -112,7 +118,7 @@ def main():
     )
     print(f"Time Taken:. {(tic - tac):.3f} seconds")
 
-    # Closes driver agent
+    # Close WebDriver
     driver.quit()
 
 
