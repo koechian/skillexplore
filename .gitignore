@@ -3,10 +3,13 @@ Outputs/
 
 
 # Pickled Datasets
-model/data/Pickled/
+modelling/data/Pickled/
+
+# Datasets
+modelling/datasets/*
 
 # models
-model/models/outputs/*
+modelling/models/outputs/*
 
 # pycache
 scrapers/scripts/__pycache__/
