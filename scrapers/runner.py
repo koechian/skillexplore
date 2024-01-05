@@ -1,10 +1,8 @@
 import os
 import pickle as pk
-import random
 from tqdm import tqdm
 import time
 
-# from subprocess import Popen, CREATE_NEW_CONSOLE
 
 from scripts.scraper2_urlscraper import Scraper
 import scripts.scraper1_brightermonday as bm
@@ -55,26 +53,15 @@ def linker(urls, index, global_bar):
 
 def main():
     if Utilities.internet_check():
-        # Generate a number of processes equal to the number of CPU's in the system minus 1.
-        cpus = 5
-
         # run the prescrapers to get URLS
+
         # preScrapers()
 
         raw_links = fetch_links()
 
-        # links = split_links(raw_links, cpus)
-        # instance = []
-
         global_bar = tqdm(total=len(raw_links), desc="Total Progress: ")
 
         tac = time.perf_counter()
-
-        # for index, x in enumerate(links):
-
-        # for i in instance:
-        #     i.join()
-
         linker(raw_links, 1, global_bar)
 
         global_bar.close()
