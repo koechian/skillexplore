@@ -12,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as conditions
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 import re
+import pandas as pd
 
 
 class Scraper:
@@ -64,6 +65,7 @@ class Scraper:
     def scraper(self, urls):
         jobs = {}
         skipped = 0
+        counter = 0
 
         # using regex to determine the site that is about to be scraped and to adjust the xpath to be used accordingly
         brightermonday = re.compile(r"brightermonday", re.IGNORECASE)
@@ -123,19 +125,16 @@ class Scraper:
                     )
 
                     # updating the jobs dict with key value pairs of {url:{job details}}
+                    counter += 1
 
                     jobs.update(
                         {
-                            url: {
+                            counter: {
                                 "title": title.text,
                                 "location": location.text,
                                 "nature": nature.text,
-                                # "salary": (
-                                #     salary.text
-                                #     if len(salary.text) > 6
-                                #     else "Unspecified"
-                                # ),
                                 "description": description,
+                                "url": url,
                             }
                         }
                     )
