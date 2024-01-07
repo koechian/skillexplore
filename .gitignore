@@ -14,3 +14,8 @@ modelling/models/outputs/*
 # pycache
 scrapers/scripts/__pycache__/
 *.pyc
+
+#DS_STORE
+.DS_Store
+scrapers/.DS_Store
+.DS_Store
