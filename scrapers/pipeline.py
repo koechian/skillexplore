@@ -8,6 +8,8 @@ from regex import P
 import requests
 from seaborn import load_dataset
 
+from .Inference import Skillextractor as model
+
 
 class Pipeline:
     def __init__(self, path):
@@ -53,6 +55,9 @@ class Pipeline:
     def cleaner(df):
         # Dropping listings without description
         df = df[df["description"] != "None"]
+
+        # removing escape sequences
+        df["description"] = df["description"].str.replace(r"\\/", "", regex=True)
 
         # Renaming remote locations to only remote
         df.loc[
